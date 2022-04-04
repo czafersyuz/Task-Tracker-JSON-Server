@@ -1,55 +1,100 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import "./App.css";
 import AddTask from "./components/AddTask";
 import Header from "./components/Header";
 import Tasks from "./components/Tasks";
 
 function App() {
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      text: "Study React Pre-Class Notes",
-      day: "Dec 12th at 2:30pm",
-      isDone: false,
-    },
-    {
-      id: 2,
-      text: "Feed the Dog",
-      day: "Dec 13th at 1:30pm",
-      isDone: true,
-    },
-    {
-      id: 3,
-      text: "Attend In-Class",
-      day: "Dec 14th at 3:00pm",
-      isDone: false,
-    },
-  ]);
-
+  const [tasks, setTasks] = useState([]);
   const [showAddTask, setShowAddTask] = useState(false);
 
-  // DELETE TASK
-  const deleteTask = (deletedTaskId) => {
-    // console.log("delete Task", deletedTaskId);
-    setTasks(tasks.filter((task) => task.id !== deletedTaskId));
+  const baseUrl = "http://localhost:5000/tasks";
+
+  //* CRUD Create Read Update Delete
+
+  //* Fetch Tasks
+
+  // const fetchTasks = async () => {
+  //   try {
+  //     const res = await fetch(baseUrl);
+  //     const data = await res.json();
+  //     // console.log(data);
+  //     setTasks(data);
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+
+  //* Fetch tasks with axios
+  const fetchTasks = async () => {
+    // const res = await axios.get(baseUrl);
+    const { data } = await axios.get(baseUrl);
+    setTasks(data);
   };
 
-  // ADD TASK
-  const addTask = (newTask) => {
-    const id = Math.floor(Math.random() * 1000 + 1);
-    const addNewTask = { id, ...newTask };
-    setTasks([...tasks, addNewTask]);
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  //* ADD TASK
+  // const addTask = async (newTask) => {
+  //   const res = await fetch(baseUrl, {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify(newTask),
+  //   });
+  //   await res.json();
+  //   console.log(res);
+  //   fetchTasks();
+  // };
+
+  //* Add tasks with axios
+  const addTask = async (newTask) => {
+    const res = await axios.post(baseUrl, newTask);
+    console.log(res);
+    fetchTasks();
   };
 
-  // TOGGLE DONE
-  const toggleDone = (toggleDoneId) => {
-    // console.log("double click", toggleDoneId);
-    setTasks(
-      tasks.map((task) =>
-        task.id === toggleDoneId ? { ...task, isDone: !task.isDone } : task
-      )
-    );
+  // const addTask = (newTask) => {
+  //   const id = Math.floor(Math.random() * 1000 + 1);
+  //   const addNewTask = { id, ...newTask };
+  //   setTasks([...tasks, addNewTask]);
+  // };
+
+  //* DELETE TASK
+  //* Delete task with axios
+  const deleteTask = async (deletedTaskId) => {
+    // console.log(deletedTaskId);
+    await axios.delete(`${baseUrl}/${deletedTaskId}`);
+    fetchTasks();
   };
+
+  // const deleteTask = (deletedTaskId) => {
+  //   // console.log("delete Task", deletedTaskId);
+  //   setTasks(tasks.filter((task) => task.id !== deletedTaskId));
+  // };
+
+  //* TOGGLE DONE
+  const toggleDone = async (toggleDoneId) => {
+    const { data } = await axios.get(`${baseUrl}/${toggleDoneId}`);
+    console.log(data);
+    // const updatedTask = { ...data, isDone: !data.isDone };
+    // await axios.put(`${baseUrl}/${toggleDoneId}`, updatedTask);
+    await axios.patch(`${baseUrl}/${toggleDoneId}`, { isDone: !data.isDone });
+    fetchTasks();
+  };
+
+  // const toggleDone = (toggleDoneId) => {
+  //   // console.log("double click", toggleDoneId);
+  //   setTasks(
+  //     tasks.map((task) =>
+  //       task.id === toggleDoneId ? { ...task, isDone: !task.isDone } : task
+  //     )
+  //   );
+  // };
 
   // TOGGLESHOW
   const toggleShow = () => setShowAddTask(!showAddTask);
